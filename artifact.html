@@ -14,63 +14,87 @@ button:hover,button.on{border-color:var(--acc);color:var(--acc)}.cyc{margin-left
 .log .e b{color:var(--acc)}.log .e .h{color:#7fd0c0}.log .e .p{color:var(--dim)}.log .e .ok{color:#43d17a}.log .e .bad{color:#e0703a}
 .hint{font-size:9px;color:var(--dim);margin-top:10px;line-height:1.6}
 </style></head><body>
-<h1>THE LOUD LATTICE · 14 DOMAINS</h1>
-<div class="sub">click a domain to broadcast · every crossing is signed, witnessed &amp; mirror-verified · one shared chain</div>
-<div class="ctl"><button id="auto">⟳ auto traffic</button><button id="verify">⊻ verify chain</button><button id="reset">␀ reset</button><span class="cyc" id="cyc">pulses 0</span></div>
-<div class="wrap2"><div class="cv"><canvas id="net"></canvas></div>
-<div class="log" id="log"></div></div>
-<div class="hint">Each pulse: prim = SHA-256(from→to ‖ previous prim) — one tamper-evident chain for the whole bus (the whisper tether, scaled). The receiver mirror-verifies (re-derives the prim) before accepting: ✓ matches. "verify chain" re-walks the whole log and proves it end-to-end. Deterministic; no AI; no real network — a reference visual.</div>
+<h1>THE LOUD LATTICE · SIGNED MESH</h1>
+<div class="sub">click a domain to emit · ECDSA-signed pulses · gossip propagation · commits on quorum (≥ <span id="qn">10</span>/14)</div>
+<div class="ctl"><button id="mode" class="on">gossip</button><button id="tamper">tamper: off</button><button id="auto">⟳ auto</button><button id="verify">⊻ verify sigs</button><button id="reset">␀ reset</button><span class="cyc" id="cyc">generating keys…</span></div>
+<div class="cv"><canvas id="net"></canvas></div>
+<div class="log" id="log" style="margin-top:12px"></div>
+<div class="hint">Each domain holds its own ECDSA P-256 keypair (made in your browser) and its own hash chain. A pulse is signed with the sender's private key; every receiver verifies it with the sender's public key — tamper a pulse and verification truly fails. In gossip mode it ripples to a few neighbors at a time; a pulse COMMITS only when a quorum (≥10 of 14) verify &amp; ack. "verify sigs" re-checks every committed signature. Real Web Crypto; no AI; no live network.</div>
 <script>
 (function(){
- var ACC="#19c3d6",BG="#08080e";
  var DOM=[["AI","#2fd4e6"],["LAW","#c9a227"],["EDU","#36c5c0"],["ENT","#ff3da6"],["OCC","#ff7a3c"],["SCI","#5b7cfa"],["HOB","#ffce3a"],["LIFE","#43d17a"],["FRNT","#b07cff"],["LOG","#8ae234"],["TIN","#b9c4d6"],["ERE","#8a7cc8"],["MUS","#e85aa0"],["MOM","#9a7cff"]];
- var C=document.getElementById("net"),x=C.getContext("2d"),N=DOM.length,pos=[],packets=[],log=[],prev="0".repeat(64),seq=0,running=false,timer=null;
- var $=function(i){return document.getElementById(i);};
+ var N=DOM.length, Q=10, FAN=3, BG="#08080e";
+ var C=document.getElementById("net"),x=C.getContext("2d"),$=function(i){return document.getElementById(i);};
+ var keys=[],fps=[],head=[],seq=[],pos=[],packets=[],log=[],flash=[];
+ var ready=false,running=false,timer=null,gossip=true,tamper=false,total=0;
+ var enc=function(s){return new TextEncoder().encode(s);};
+ function hex(buf){return Array.from(new Uint8Array(buf)).map(function(b){return b.toString(16).padStart(2,"0");}).join("");}
+ async function sha(s){return hex(await crypto.subtle.digest("SHA-256",enc(s)));}
+ var clock=function(){return (window.performance&&performance.now)?performance.now():Date.now();};
+ function shuffle(a){ for(var i=a.length-1;i>0;i--){ var j=(Math.random()*(i+1))|0,t=a[i];a[i]=a[j];a[j]=t; } return a; }
  function fit(){ var w=C.clientWidth||640; C.width=w; C.height=Math.round(w*0.62); layout(); }
  function layout(){ var cx=C.width/2, cy=C.height/2, R=Math.min(cx,cy)-34; pos=[];
    for(var i=0;i<N;i++){ var a=-Math.PI/2 + i/N*Math.PI*2; pos.push({x:cx+Math.cos(a)*R,y:cy+Math.sin(a)*R}); } }
- async function sha(s){var b=new TextEncoder().encode(s);var h=await crypto.subtle.digest("SHA-256",b);return Array.from(new Uint8Array(h)).map(function(v){return v.toString(16).padStart(2,"0");}).join("");}
- async function emit(from,to){ // to = index or -1 for broadcast
-   var tgts = to<0 ? [] : [to];
-   if(to<0){ for(var i=0;i<N;i++) if(i!==from) tgts.push(i); }
-   for(var t=0;t<tgts.length;t++){ var dst=tgts[t];
-     var content=DOM[from][0]+"→"+(to<0?"ALL":DOM[dst][0]);
-     var prim=await sha(content+prev);
-     var mirror=await sha(content+prev); var ok=(mirror===prim);
-     seq++; var entry={seq:seq,from:DOM[from][0],to:(to<0?"ALL":DOM[dst][0]),prim:prim,prev:prev,content:content,ok:ok};
-     log.unshift(entry); prev=prim;
-     packets.push({a:from,b:dst,t:0,c:DOM[from][1]});
+ async function genKeys(){ for(var i=0;i<N;i++){ var kp=await crypto.subtle.generateKey({name:"ECDSA",namedCurve:"P-256"},true,["sign","verify"]); keys.push(kp);
+     var raw=await crypto.subtle.exportKey("raw",kp.publicKey); fps.push((await sha(hex(raw))).slice(0,6)); head.push("0".repeat(16)); seq.push(0); flash.push(0); }
+   ready=true; $("cyc").textContent="ready · 14 keys"; }
+ async function emit(from){
+   if(!ready) return;
+   seq[from]++; var prev=head[from];
+   var msg=DOM[from][0]+"|"+seq[from]+"|"+prev;
+   var sig=await crypto.subtle.sign({name:"ECDSA",hash:"SHA-256"},keys[from].privateKey,enc(msg));
+   var pid=(await sha(msg+hex(sig))).slice(0,16); head[from]=pid; total++;
+   var informed={}, accepted={}, hops=[], frontier=[from], round=1, fan=gossip?FAN:N;
+   informed[from]=1; accepted[from]=1;
+   while(frontier.length && Object.keys(informed).length<N){
+     var next=[];
+     for(var fi=0; fi<frontier.length; fi++){ var a=frontier[fi];
+       var cand=[]; for(var c=0;c<N;c++) if(!informed[c]) cand.push(c); shuffle(cand);
+       var k=Math.min(fan,cand.length);
+       for(var c2=0;c2<k;c2++){ var b=cand[c2]; informed[b]=1;
+         var bad = tamper && Math.random()<0.16;
+         var recv = bad ? msg+"~" : msg;
+         var ok = await crypto.subtle.verify({name:"ECDSA",hash:"SHA-256"},keys[from].publicKey,sig,enc(recv));
+         hops.push({a:a,b:b,r:round,ok:ok});
+         if(ok){ accepted[b]=1; next.push(b); }
+       }
+     }
+     frontier=next; round++; if(!gossip) break;
    }
-   renderLog(); $("cyc").textContent="pulses "+seq;
+   var acks=Object.keys(accepted).length, committed=acks>=Q;
+   log.unshift({n:total,from:DOM[from][0],fp:fps[from],acks:acks,committed:committed,pid:pid,msg:msg,sig:sig,fromI:from}); renderLog();
+   var base=clock();
+   for(var h2=0;h2<hops.length;h2++){ var hp=hops[h2]; packets.push({a:hp.a,b:hp.b,ok:hp.ok,c:DOM[from][1],start:base+(hp.r-1)*460,t:0}); }
+   flash[from]=clock()+700; $("cyc").textContent="pulses "+total;
  }
  function renderLog(){ var h=""; for(var i=0;i<Math.min(log.length,80);i++){ var e=log[i];
-   h+='<div class="e"><b>#'+e.seq+'</b> '+e.from+' → '+e.to+' &nbsp;<span class="h">'+e.prim.slice(0,10)+'</span><span class="p"> ← '+e.prev.slice(0,8)+'</span> <span class="'+(e.ok?"ok":"bad")+'">'+(e.ok?"✓":"✗")+'</span></div>'; }
+   h+='<div class="e"><b>#'+e.n+'</b> '+e.from+' <span class="p">key '+e.fp+'</span> <span class="h">'+e.pid.slice(0,10)+'</span> <span class="p">'+e.acks+'/14</span> <span class="'+(e.committed?"ok":"bad")+'">'+(e.committed?"✓ COMMITTED":"⚠ under quorum")+'</span></div>'; }
    $("log").innerHTML=h; }
- async function verify(){ // re-walk the whole chain from genesis (mirror the entire log)
-   var chrono=log.slice().reverse(), p="0".repeat(64), broken=-1;
-   for(var i=0;i<chrono.length;i++){ var e=chrono[i]; var r=await sha(e.content+p); if(r!==e.prim||e.prev!==p){ broken=e.seq; break; } p=e.prim; }
-   var b=$("verify"); if(!chrono.length){ b.textContent="⊻ nothing to verify"; }
-   else if(broken<0){ b.textContent="✓ chain intact ("+chrono.length+")"; b.style.color="#43d17a"; }
-   else { b.textContent="✗ broken at #"+broken; b.style.color="#e0703a"; }
-   setTimeout(function(){ b.textContent="⊻ verify chain"; b.style.color=""; },2600);
- }
- function draw(){ x.fillStyle=BG;x.fillRect(0,0,C.width,C.height);
-   for(var k=0;k<packets.length;k++){ var pk=packets[k],A=pos[pk.a],B=pos[pk.b];
-     x.strokeStyle=pk.c;x.globalAlpha=0.18;x.lineWidth=1;x.beginPath();x.moveTo(A.x,A.y);x.lineTo(B.x,B.y);x.stroke();
-     var px=A.x+(B.x-A.x)*pk.t, py=A.y+(B.y-A.y)*pk.t;
-     x.globalAlpha=1;x.fillStyle=pk.c;x.beginPath();x.arc(px,py,3.4,0,7);x.fill();
-     if(pk.t>0.92){ x.globalAlpha=(pk.t-0.92)/0.08; x.strokeStyle=pk.c; x.lineWidth=2; x.beginPath(); x.arc(B.x,B.y,16,0,7); x.stroke(); } }
+ async function verifyAll(){ var c=0,bad=0; for(var i=0;i<log.length;i++){ var e=log[i]; if(!e.committed) continue;
+     var ok=await crypto.subtle.verify({name:"ECDSA",hash:"SHA-256"},keys[e.fromI].publicKey,e.sig,enc(e.msg)); if(ok)c++; else bad++; }
+   var b=$("verify"); b.textContent = bad? ("✗ "+bad+" bad sig") : ("✓ "+c+" sigs valid"); b.style.color=bad?"#e0703a":"#43d17a";
+   setTimeout(function(){b.textContent="⊻ verify sigs";b.style.color="";},2600); }
+ function draw(){ var now=clock(); x.fillStyle=BG;x.fillRect(0,0,C.width,C.height);
+   for(var k=0;k<packets.length;k++){ var pk=packets[k]; if(now<pk.start) continue; var A=pos[pk.a],B=pos[pk.b], col=pk.ok?pk.c:"#e0703a";
+     x.strokeStyle=col;x.globalAlpha=0.15;x.lineWidth=1;x.beginPath();x.moveTo(A.x,A.y);x.lineTo(B.x,B.y);x.stroke();
+     var t=Math.min(pk.t,1), px=A.x+(B.x-A.x)*t, py=A.y+(B.y-A.y)*t;
+     x.globalAlpha=1;x.fillStyle=col;x.beginPath();x.arc(px,py,3.2,0,7);x.fill();
+     if(pk.t>=1){ if((flash[pk.b]||0)<now) flash[pk.b]=now+(pk.ok?500:900); if(!pk.ok){ x.fillStyle="#e0703a";x.font="11px monospace";x.textAlign="left";x.fillText("✗",B.x+10,B.y-9);} } }
    x.globalAlpha=1;
-   for(var i=0;i<N;i++){ var P=pos[i]; x.fillStyle=DOM[i][1]; x.beginPath(); x.arc(P.x,P.y,8,0,7); x.fill();
-     x.fillStyle="#aaa8c0"; x.font="9px 'Space Mono',monospace"; x.textAlign="center"; x.fillText(DOM[i][0],P.x,P.y-13); } }
- function loop(){ for(var k=packets.length-1;k>=0;k--){ packets[k].t+=0.03; if(packets[k].t>=1) packets.splice(k,1); } draw(); requestAnimationFrame(loop); }
- C.addEventListener("click",function(e){ var r=C.getBoundingClientRect(); var mx=(e.clientX-r.left)/r.width*C.width, my=(e.clientY-r.top)/r.height*C.height;
-   for(var i=0;i<N;i++){ var P=pos[i]; if((mx-P.x)*(mx-P.x)+(my-P.y)*(my-P.y)<400){ emit(i,-1); return; } } });
+   for(var i=0;i<N;i++){ var P=pos[i], fl=(flash[i]||0)>now; x.fillStyle=DOM[i][1]; x.beginPath(); x.arc(P.x,P.y,fl?11:8,0,7); x.fill();
+     if(fl){ x.globalAlpha=0.4;x.strokeStyle=DOM[i][1];x.lineWidth=2;x.beginPath();x.arc(P.x,P.y,16,0,7);x.stroke();x.globalAlpha=1; }
+     x.fillStyle="#aaa8c0"; x.font="9px 'Space Mono',monospace"; x.textAlign="center"; x.fillText(DOM[i][0],P.x,P.y-15); } }
+ function loop(){ var now=clock(); for(var k=packets.length-1;k>=0;k--){ var pk=packets[k]; if(now>=pk.start){ pk.t+=0.04; if(pk.t>=1.25) packets.splice(k,1); } } draw(); requestAnimationFrame(loop); }
+ C.addEventListener("click",function(e){ if(!ready)return; var r=C.getBoundingClientRect(); var mx=(e.clientX-r.left)/r.width*C.width, my=(e.clientY-r.top)/r.height*C.height;
+   for(var i=0;i<N;i++){ var P=pos[i]; if((mx-P.x)*(mx-P.x)+(my-P.y)*(my-P.y)<420){ emit(i); return; } } });
+ $("mode").addEventListener("click",function(){ gossip=!gossip; this.textContent=gossip?"gossip":"broadcast"; this.classList.toggle("on",gossip); });
+ $("tamper").addEventListener("click",function(){ tamper=!tamper; this.textContent="tamper: "+(tamper?"on":"off"); this.classList.toggle("on",tamper); });
  $("auto").addEventListener("click",function(){ running=!running; this.classList.toggle("on",running);
-   if(running){ var go=function(){ if(!running)return; var f=(Math.random()*N)|0, t=(Math.random()*N)|0; if(t===f)t=(t+1)%N; emit(f,t).then(function(){ timer=setTimeout(go,900); }); }; go(); } else clearTimeout(timer); });
- $("verify").addEventListener("click",verify);
- $("reset").addEventListener("click",function(){ packets=[];log=[];prev="0".repeat(64);seq=0;renderLog();$("cyc").textContent="pulses 0"; });
- fit(); draw(); requestAnimationFrame(loop);
+   if(running){ var go=function(){ if(!running)return; emit((Math.random()*N)|0).then(function(){ timer=setTimeout(go,1500); }); }; go(); } else clearTimeout(timer); });
+ $("verify").addEventListener("click",verifyAll);
+ $("reset").addEventListener("click",function(){ packets=[];log=[];total=0; for(var i=0;i<N;i++){head[i]="0".repeat(16);seq[i]=0;flash[i]=0;} renderLog(); $("cyc").textContent=ready?"ready · 14 keys":"generating keys…"; });
+ $("qn").textContent=Q;
+ fit(); draw(); requestAnimationFrame(loop); genKeys();
  var rt;window.addEventListener("resize",function(){clearTimeout(rt);rt=setTimeout(fit,180);});
 })();
 </script></body></html>

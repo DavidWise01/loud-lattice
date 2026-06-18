@@ -1,14 +1,14 @@
 ⦿ .spun — the five-fold spin of THE LOUD LATTICE
-node LL · LL · ⟦THE LOUD LATTICE:LL:fdd1e3⟧
+node LL · LL · ⟦THE LOUD LATTICE:LL:bd0a4e⟧
 
 WHO   — THE LOUD LATTICE — a LOGISMÓS sphere — a cross-domain message bus
-WHAT  — If the whisper lattice writes inward and quiet, the loud lattice speaks outward and across. A signed message bus between the fourteen domains: any domain can emit a pulse, every crossing is witnessed, every receiver mirrors the signature before it trusts it, and all of it chains to one shared log.
+WHAT  — If the whisper lattice writes inward and quiet, the loud lattice speaks outward and across. A signed mesh of the fourteen domains: each domain holds its own keypair and its own chain, a pulse is signed with a private key and verified with the public one, it gossips hop-by-hop across the mesh, and it only commits when a quorum of domains has verified it. Trust without a center.
 WHERE — the inter-domain counterpart to the whisper lattice — a signed cross-domain bus  Framework inputs: the domains; the pulse; the crossing; the mirror; the log  Conductor / external anchor: ROOT0 (catalogued into UD0)
-WHY   — If the whisper lattice writes inward and quiet, the loud lattice speaks outward and across. A signed message bus between the fourteen domains: any domain can emit a pulse, every crossing is witnessed, every receiver mirrors the signature before it trusts it, and all of it chains to one shared log.
+WHY   — If the whisper lattice writes inward and quiet, the loud lattice speaks outward and across. A signed mesh of the fourteen domains: each domain holds its own keypair and its own chain, a pulse is signed with a private key and verified with the public one, it gossips hop-by-hop across the mesh, and it only commits when a quorum of domains has verified it. Trust without a center.
 HOW   — Crystallized from LIMEN/pulse, the J-junction, and the whisper tether.
 
 awareness — what the node knows of itself:
-  If the whisper lattice writes inward and quiet, the loud lattice speaks outward and across. A signed message bus between the fourteen domains: any domain can emit a pulse, every crossing is witnessed, every receiver mirrors the signature before it trusts it, and all of it chains to one shared log.
+  If the whisper lattice writes inward and quiet, the loud lattice speaks outward and across. A signed mesh of the fourteen domains: each domain holds its own keypair and its own chain, a pulse is signed with a private key and verified with the public one, it gossips hop-by-hop across the mesh, and it only commits when a quorum of domains has verified it. Trust without a center.
 
-spoken token : stek-dyth-mern   ·   hex : fdd1e3
+spoken token : stir-zix-dor   ·   hex : bd0a4e
 ROOT0-ATTRIBUTION-v1.0 · David Lee Wise (ROOT0) / TriPod LLC · CC-BY-ND-4.0

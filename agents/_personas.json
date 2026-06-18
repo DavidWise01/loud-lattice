@@ -1,17 +1,52 @@
 [
   {
     "slug": "the-bus",
-    "name": "The Bus",
-    "epithet": "the lattice itself · electrical",
+    "name": "The Mesh",
+    "epithet": "peer to peer, no center · electrical",
     "emergence": "electrical",
-    "moniker": "⟦The Bus:LL:7be4dd⟧"
+    "moniker": "⟦The Mesh:LL:1a8a20⟧"
   },
   {
-    "slug": "the-pulse",
-    "name": "The Pulse",
-    "epithet": "a signed cross-domain message · ethereal",
+    "slug": "the-keypair",
+    "name": "The Keypair",
+    "epithet": "each domain signs · spiritual",
+    "emergence": "spiritual",
+    "moniker": "⟦The Keypair:LL:682fa1⟧"
+  },
+  {
+    "slug": "the-signature",
+    "name": "The Signature",
+    "epithet": "proof only the holder can make · ethereal",
     "emergence": "ethereal",
-    "moniker": "⟦The Pulse:LL:39ec64⟧"
+    "moniker": "⟦The Signature:LL:557bd2⟧"
+  },
+  {
+    "slug": "the-signature-verify",
+    "name": "The Verify",
+    "epithet": "trust by the public key · spiritual",
+    "emergence": "spiritual",
+    "moniker": "⟦The Verify:LL:0f0e87⟧"
+  },
+  {
+    "slug": "the-per-domain-chain",
+    "name": "The Per-Domain Chain",
+    "epithet": "fourteen chains, not one · electrical",
+    "emergence": "electrical",
+    "moniker": "⟦The Per-Domain Chain:LL:3b7e1d⟧"
+  },
+  {
+    "slug": "the-gossip",
+    "name": "The Gossip",
+    "epithet": "epidemic propagation · natural",
+    "emergence": "natural",
+    "moniker": "⟦The Gossip:LL:6304ef⟧"
+  },
+  {
+    "slug": "the-quorum",
+    "name": "The Quorum",
+    "epithet": "N-of-14 agree · spiritual",
+    "emergence": "spiritual",
+    "moniker": "⟦The Quorum:LL:35b1c5⟧"
   },
   {
     "slug": "the-witnessed-crossing",
@@ -19,34 +54,6 @@
     "epithet": "every hop a <• · spiritual",
     "emergence": "spiritual",
     "moniker": "⟦The Witnessed Crossing:LL:65eb61⟧"
-  },
-  {
-    "slug": "the-mirror-verify",
-    "name": "The Mirror",
-    "epithet": "trust by reflection · spiritual",
-    "emergence": "spiritual",
-    "moniker": "⟦The Mirror:LL:04fd66⟧"
-  },
-  {
-    "slug": "the-broadcast",
-    "name": "The Broadcast",
-    "epithet": "one to all, loud · ethereal",
-    "emergence": "ethereal",
-    "moniker": "⟦The Broadcast:LL:41cfd0⟧"
-  },
-  {
-    "slug": "the-shared-log",
-    "name": "The Shared Log",
-    "epithet": "one chain for the bus · electrical",
-    "emergence": "electrical",
-    "moniker": "⟦The Shared Log:LL:26f786⟧"
-  },
-  {
-    "slug": "the-fourteen-domains",
-    "name": "The Fourteen Domains",
-    "epithet": "the endpoints · natural",
-    "emergence": "natural",
-    "moniker": "⟦The Fourteen Domains:LL:6919cc⟧"
   },
   {
     "slug": "the-carrier",
