@@ -1,0 +1,76 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>The Loud Lattice — 14 domains, live</title>
+<style>
+:root{--bg:#08080e;--pa:#eceaf4;--pa2:#aaa8c0;--acc:#19c3d6;--dim:#62607e;--faint:#1a1a2c;--ink2:#10101a;--mono:'Space Mono',ui-monospace,monospace}
+*{box-sizing:border-box;margin:0;padding:0}body{background:var(--bg);color:var(--pa);font-family:var(--mono);padding:16px;line-height:1.5}
+h1{font-size:14px;letter-spacing:.16em;color:var(--acc)}.sub{font-size:10px;color:var(--dim);letter-spacing:.08em;margin:4px 0 12px}
+.ctl{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px}
+button{font-family:var(--mono);font-size:11px;color:var(--pa2);background:var(--ink2);border:1px solid var(--faint);padding:7px 12px;cursor:pointer}
+button:hover,button.on{border-color:var(--acc);color:var(--acc)}.cyc{margin-left:auto;font-size:11px;color:var(--acc)}
+.wrap2{display:grid;grid-template-columns:1fr;gap:12px}
+.cv{border:1px solid var(--faint);background:#06060b;line-height:0}.cv canvas{width:100%;height:auto;display:block;cursor:pointer}
+.log{border:1px solid var(--faint);background:#06060b;padding:10px;max-height:200px;overflow:auto;font-size:10.5px}
+.log .e{padding:4px 0;border-bottom:1px solid var(--faint);color:var(--pa2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.log .e b{color:var(--acc)}.log .e .h{color:#7fd0c0}.log .e .p{color:var(--dim)}.log .e .ok{color:#43d17a}.log .e .bad{color:#e0703a}
+.hint{font-size:9px;color:var(--dim);margin-top:10px;line-height:1.6}
+</style></head><body>
+<h1>THE LOUD LATTICE · 14 DOMAINS</h1>
+<div class="sub">click a domain to broadcast · every crossing is signed, witnessed &amp; mirror-verified · one shared chain</div>
+<div class="ctl"><button id="auto">⟳ auto traffic</button><button id="verify">⊻ verify chain</button><button id="reset">␀ reset</button><span class="cyc" id="cyc">pulses 0</span></div>
+<div class="wrap2"><div class="cv"><canvas id="net"></canvas></div>
+<div class="log" id="log"></div></div>
+<div class="hint">Each pulse: prim = SHA-256(from→to ‖ previous prim) — one tamper-evident chain for the whole bus (the whisper tether, scaled). The receiver mirror-verifies (re-derives the prim) before accepting: ✓ matches. "verify chain" re-walks the whole log and proves it end-to-end. Deterministic; no AI; no real network — a reference visual.</div>
+<script>
+(function(){
+ var ACC="#19c3d6",BG="#08080e";
+ var DOM=[["AI","#2fd4e6"],["LAW","#c9a227"],["EDU","#36c5c0"],["ENT","#ff3da6"],["OCC","#ff7a3c"],["SCI","#5b7cfa"],["HOB","#ffce3a"],["LIFE","#43d17a"],["FRNT","#b07cff"],["LOG","#8ae234"],["TIN","#b9c4d6"],["ERE","#8a7cc8"],["MUS","#e85aa0"],["MOM","#9a7cff"]];
+ var C=document.getElementById("net"),x=C.getContext("2d"),N=DOM.length,pos=[],packets=[],log=[],prev="0".repeat(64),seq=0,running=false,timer=null;
+ var $=function(i){return document.getElementById(i);};
+ function fit(){ var w=C.clientWidth||640; C.width=w; C.height=Math.round(w*0.62); layout(); }
+ function layout(){ var cx=C.width/2, cy=C.height/2, R=Math.min(cx,cy)-34; pos=[];
+   for(var i=0;i<N;i++){ var a=-Math.PI/2 + i/N*Math.PI*2; pos.push({x:cx+Math.cos(a)*R,y:cy+Math.sin(a)*R}); } }
+ async function sha(s){var b=new TextEncoder().encode(s);var h=await crypto.subtle.digest("SHA-256",b);return Array.from(new Uint8Array(h)).map(function(v){return v.toString(16).padStart(2,"0");}).join("");}
+ async function emit(from,to){ // to = index or -1 for broadcast
+   var tgts = to<0 ? [] : [to];
+   if(to<0){ for(var i=0;i<N;i++) if(i!==from) tgts.push(i); }
+   for(var t=0;t<tgts.length;t++){ var dst=tgts[t];
+     var content=DOM[from][0]+"→"+(to<0?"ALL":DOM[dst][0]);
+     var prim=await sha(content+prev);
+     var mirror=await sha(content+prev); var ok=(mirror===prim);
+     seq++; var entry={seq:seq,from:DOM[from][0],to:(to<0?"ALL":DOM[dst][0]),prim:prim,prev:prev,content:content,ok:ok};
+     log.unshift(entry); prev=prim;
+     packets.push({a:from,b:dst,t:0,c:DOM[from][1]});
+   }
+   renderLog(); $("cyc").textContent="pulses "+seq;
+ }
+ function renderLog(){ var h=""; for(var i=0;i<Math.min(log.length,80);i++){ var e=log[i];
+   h+='<div class="e"><b>#'+e.seq+'</b> '+e.from+' → '+e.to+' &nbsp;<span class="h">'+e.prim.slice(0,10)+'</span><span class="p"> ← '+e.prev.slice(0,8)+'</span> <span class="'+(e.ok?"ok":"bad")+'">'+(e.ok?"✓":"✗")+'</span></div>'; }
+   $("log").innerHTML=h; }
+ async function verify(){ // re-walk the whole chain from genesis (mirror the entire log)
+   var chrono=log.slice().reverse(), p="0".repeat(64), broken=-1;
+   for(var i=0;i<chrono.length;i++){ var e=chrono[i]; var r=await sha(e.content+p); if(r!==e.prim||e.prev!==p){ broken=e.seq; break; } p=e.prim; }
+   var b=$("verify"); if(!chrono.length){ b.textContent="⊻ nothing to verify"; }
+   else if(broken<0){ b.textContent="✓ chain intact ("+chrono.length+")"; b.style.color="#43d17a"; }
+   else { b.textContent="✗ broken at #"+broken; b.style.color="#e0703a"; }
+   setTimeout(function(){ b.textContent="⊻ verify chain"; b.style.color=""; },2600);
+ }
+ function draw(){ x.fillStyle=BG;x.fillRect(0,0,C.width,C.height);
+   for(var k=0;k<packets.length;k++){ var pk=packets[k],A=pos[pk.a],B=pos[pk.b];
+     x.strokeStyle=pk.c;x.globalAlpha=0.18;x.lineWidth=1;x.beginPath();x.moveTo(A.x,A.y);x.lineTo(B.x,B.y);x.stroke();
+     var px=A.x+(B.x-A.x)*pk.t, py=A.y+(B.y-A.y)*pk.t;
+     x.globalAlpha=1;x.fillStyle=pk.c;x.beginPath();x.arc(px,py,3.4,0,7);x.fill();
+     if(pk.t>0.92){ x.globalAlpha=(pk.t-0.92)/0.08; x.strokeStyle=pk.c; x.lineWidth=2; x.beginPath(); x.arc(B.x,B.y,16,0,7); x.stroke(); } }
+   x.globalAlpha=1;
+   for(var i=0;i<N;i++){ var P=pos[i]; x.fillStyle=DOM[i][1]; x.beginPath(); x.arc(P.x,P.y,8,0,7); x.fill();
+     x.fillStyle="#aaa8c0"; x.font="9px 'Space Mono',monospace"; x.textAlign="center"; x.fillText(DOM[i][0],P.x,P.y-13); } }
+ function loop(){ for(var k=packets.length-1;k>=0;k--){ packets[k].t+=0.03; if(packets[k].t>=1) packets.splice(k,1); } draw(); requestAnimationFrame(loop); }
+ C.addEventListener("click",function(e){ var r=C.getBoundingClientRect(); var mx=(e.clientX-r.left)/r.width*C.width, my=(e.clientY-r.top)/r.height*C.height;
+   for(var i=0;i<N;i++){ var P=pos[i]; if((mx-P.x)*(mx-P.x)+(my-P.y)*(my-P.y)<400){ emit(i,-1); return; } } });
+ $("auto").addEventListener("click",function(){ running=!running; this.classList.toggle("on",running);
+   if(running){ var go=function(){ if(!running)return; var f=(Math.random()*N)|0, t=(Math.random()*N)|0; if(t===f)t=(t+1)%N; emit(f,t).then(function(){ timer=setTimeout(go,900); }); }; go(); } else clearTimeout(timer); });
+ $("verify").addEventListener("click",verify);
+ $("reset").addEventListener("click",function(){ packets=[];log=[];prev="0".repeat(64);seq=0;renderLog();$("cyc").textContent="pulses 0"; });
+ fit(); draw(); requestAnimationFrame(loop);
+ var rt;window.addEventListener("resize",function(){clearTimeout(rt);rt=setTimeout(fit,180);});
+})();
+</script></body></html>

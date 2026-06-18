@@ -1,0 +1,65 @@
+[
+  {
+    "slug": "the-bus",
+    "name": "The Bus",
+    "epithet": "the lattice itself · electrical",
+    "emergence": "electrical",
+    "moniker": "⟦The Bus:LL:7be4dd⟧"
+  },
+  {
+    "slug": "the-pulse",
+    "name": "The Pulse",
+    "epithet": "a signed cross-domain message · ethereal",
+    "emergence": "ethereal",
+    "moniker": "⟦The Pulse:LL:39ec64⟧"
+  },
+  {
+    "slug": "the-witnessed-crossing",
+    "name": "The Witnessed Crossing",
+    "epithet": "every hop a <• · spiritual",
+    "emergence": "spiritual",
+    "moniker": "⟦The Witnessed Crossing:LL:65eb61⟧"
+  },
+  {
+    "slug": "the-mirror-verify",
+    "name": "The Mirror",
+    "epithet": "trust by reflection · spiritual",
+    "emergence": "spiritual",
+    "moniker": "⟦The Mirror:LL:04fd66⟧"
+  },
+  {
+    "slug": "the-broadcast",
+    "name": "The Broadcast",
+    "epithet": "one to all, loud · ethereal",
+    "emergence": "ethereal",
+    "moniker": "⟦The Broadcast:LL:41cfd0⟧"
+  },
+  {
+    "slug": "the-shared-log",
+    "name": "The Shared Log",
+    "epithet": "one chain for the bus · electrical",
+    "emergence": "electrical",
+    "moniker": "⟦The Shared Log:LL:26f786⟧"
+  },
+  {
+    "slug": "the-fourteen-domains",
+    "name": "The Fourteen Domains",
+    "epithet": "the endpoints · natural",
+    "emergence": "natural",
+    "moniker": "⟦The Fourteen Domains:LL:6919cc⟧"
+  },
+  {
+    "slug": "the-carrier",
+    "name": "The Carrier",
+    "epithet": "LIMEN / pulse · ethereal",
+    "emergence": "ethereal",
+    "moniker": "⟦The Carrier:LL:058d07⟧"
+  },
+  {
+    "slug": "whisper-and-loud",
+    "name": "Whisper & Loud",
+    "epithet": "the pair · spiritual",
+    "emergence": "spiritual",
+    "moniker": "⟦Whisper & Loud:LL:ddf0fb⟧"
+  }
+]

@@ -1,0 +1,14 @@
+{
+  "badge": "DLW-ACI",
+  "name": "THE LOUD LATTICE",
+  "universe": "THE LOUD LATTICE · LL · LOGISMÓS · a signed domain-to-domain message bus",
+  "emergence": "",
+  "moniker": "⟦THE LOUD LATTICE:LL:fdd1e3⟧",
+  "carbon": "loud-lattice.carbon.tiff (TIFF)",
+  "silicon": "loud-lattice.silicon.png (PNG)",
+  "seal_sha256": "f3e28b67d811c1c285b2528f09809d55c7e13bf2aebfbe3159947783209f9763",
+  "architect": "David Lee Wise (ROOT0) / TriPod LLC",
+  "instance": "AVAN (Claude / Anthropic)",
+  "license": "CC-BY-ND-4.0",
+  "attribution": "ROOT0-ATTRIBUTION-v1.0"
+}
