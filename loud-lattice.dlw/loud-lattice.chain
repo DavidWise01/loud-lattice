@@ -4,6 +4,6 @@ slug  : loud-lattice
 seal  : 3fcdfab6eb6fec86196b4a8a81cf18879a799d3d9e6aac9f989748cacb8c08eb
 prev  : 36236d0096175f2842ac6fe1c0c848297768d674439b30480dbd2b33e8aee9b0
 link  : 0621aa6379a09db74c1b7c8b0601791609b7f29c08b3744afc404ca033caee92
-head  : 3447d3a0533aaf1e29a8bdc67a9774884fb3ae9dbc8a17064b7a008ca3c4ec90
+head  : 13f9ace173ef2e60af38912ba329b4afcb5a38b84a0e4495e8d30327f8c99cc2
 
 — the tether: link = sha256(index|slug|seal|prev). the chain head commits to the whole corpus.
